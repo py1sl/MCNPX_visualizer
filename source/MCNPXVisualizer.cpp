@@ -28,6 +28,7 @@
 #include <QRegExp>
 #include <QTextStream>
 #include <QThread>
+#include <QPrintDialog>
 
 #include "Config.h"
 #include "RenderManager.h"
@@ -275,14 +276,14 @@ void MCNPXVisualizer::createDockWidgets()
 	connect(UiMCNPXScene.sceneDrawer, SIGNAL(cameraPositionChanged(float,float,float)), CameraManager::getSingletonPtr()->getCamera(), SLOT(onCameraPositionChanged(float,float,float)));
 	connect(UiMCNPXScene.sceneDrawer, SIGNAL(cameraLookAtChanged(float,float,float)), CameraManager::getSingletonPtr()->getCamera(), SLOT(onCameraLookAtChanged(float,float,float)));
 	connect(UiMCNPXScene.sceneDrawer, SIGNAL(cameraStrafeChanged(float,float,float)), CameraManager::getSingletonPtr()->getCamera(), SLOT(onCameraStrafeChanged(float,float,float)));
-	connect(UiMCNPXScene.sceneDrawer, SIGNAL(zPlaneMinChanged(float)), CameraManager::getSingletonPtr()->getSections(), SLOT(onZPlaneMinChanged(float)));
-	connect(UiMCNPXScene.sceneDrawer, SIGNAL(zPlaneMaxChanged(float)), CameraManager::getSingletonPtr()->getSections(), SLOT(onZPlaneMaxChanged(float)));
-	connect(UiMCNPXScene.sceneDrawer, SIGNAL(xPlaneMinChanged(float)), CameraManager::getSingletonPtr()->getSections(), SLOT(onXPlaneMinChanged(float)));
-	connect(UiMCNPXScene.sceneDrawer, SIGNAL(xPlaneMaxChanged(float)), CameraManager::getSingletonPtr()->getSections(), SLOT(onXPlaneMaxChanged(float)));
-	connect(UiMCNPXScene.sceneDrawer, SIGNAL(yPlaneMinChanged(float)), CameraManager::getSingletonPtr()->getSections(), SLOT(onYPlaneMinChanged(float)));
-	connect(UiMCNPXScene.sceneDrawer, SIGNAL(yPlaneMaxChanged(float)), CameraManager::getSingletonPtr()->getSections(), SLOT(onYPlaneMaxChanged(float)));
+    connect(UiMCNPXScene.sceneDrawer, SIGNAL(zPlaneMinChanged(double)), CameraManager::getSingletonPtr()->getSections(), SLOT(onZPlaneMinChanged(double)));
+    connect(UiMCNPXScene.sceneDrawer, SIGNAL(zPlaneMaxChanged(double)), CameraManager::getSingletonPtr()->getSections(), SLOT(onZPlaneMaxChanged(double)));
+    connect(UiMCNPXScene.sceneDrawer, SIGNAL(xPlaneMinChanged(double)), CameraManager::getSingletonPtr()->getSections(), SLOT(onXPlaneMinChanged(double)));
+    connect(UiMCNPXScene.sceneDrawer, SIGNAL(xPlaneMaxChanged(double)), CameraManager::getSingletonPtr()->getSections(), SLOT(onXPlaneMaxChanged(double)));
+    connect(UiMCNPXScene.sceneDrawer, SIGNAL(yPlaneMinChanged(double)), CameraManager::getSingletonPtr()->getSections(), SLOT(onYPlaneMinChanged(double)));
+    connect(UiMCNPXScene.sceneDrawer, SIGNAL(yPlaneMaxChanged(double)), CameraManager::getSingletonPtr()->getSections(), SLOT(onYPlaneMaxChanged(double)));
 
-	connect(this->UiMCNPXScene.sceneDrawer, SIGNAL(statusChanged(QString, int)), this, SLOT(statusBarChanged(QString, int)));
+    connect(this->UiMCNPXScene.sceneDrawer, SIGNAL(statusChanged(QString, int)), this, SLOT(statusBarChanged(QString, int)));
 	
 	connect(this->UiMCNPXScene.sceneDrawer, SIGNAL(informationChanged()), this, SLOT(onSceneInformationChanged()));
 }
@@ -484,7 +485,7 @@ void MCNPXVisualizer::createStatusBar()
 								 tr("Open File"), QString::fromStdString(Config::getSingleton().MCNPX), tr("MCNPX (*.txt *.pov *.*)"));
 	if (fileName != "")
 	{
-		std::cout << "Opening " << fileName.toStdString().c_str() << "..." << std::endl;
+        std::cout << "Opening test: " << fileName.toStdString().c_str() << "..." << std::endl;
 		openFile(fileName); // actually open the mcnpx file
 	}
 		
@@ -601,18 +602,18 @@ bool MCNPXVisualizer::saveAs()
 // ==> print()
 //--------------------------------------------------------------------
 void MCNPXVisualizer::print()
-{
-	Q_ASSERT(imageLabel->pixmap());
+{   //need t fix
+    //Q_ASSERT(imageLabel->pixmap());
 	QPrintDialog dialog(&printer, this);
 	if (dialog.exec())
 	{
 		QPainter painter(&printer);
 		QRect rect = painter.viewport();
-		QSize size = imageLabel->pixmap()->size();
+        QSize size = imageLabel->pixmap().size();
 		size.scale(rect.size(), Qt::KeepAspectRatio);
 		painter.setViewport(rect.x(), rect.y(), size.width(), size.height());
-		painter.setWindow(imageLabel->pixmap()->rect());
-		painter.drawPixmap(0, 0, *imageLabel->pixmap());
+        painter.setWindow(imageLabel->pixmap().rect());
+        painter.drawPixmap(0, 0, imageLabel->pixmap());
 	}
 }
 
@@ -733,9 +734,9 @@ void MCNPXVisualizer::updateActions()
 //--------------------------------------------------------------------
 void MCNPXVisualizer::scaleImage(double factor)
 {
-	Q_ASSERT(imageLabel->pixmap());
+    //Q_ASSERT(imageLabel->pixmap());
 	scaleFactor *= factor;
-	imageLabel->resize(scaleFactor * imageLabel->pixmap()->size());
+    imageLabel->resize(scaleFactor * imageLabel->pixmap().size());
 
 	adjustScrollBar(scrollArea->horizontalScrollBar(), factor);
 	adjustScrollBar(scrollArea->verticalScrollBar(), factor);
@@ -775,7 +776,7 @@ void MCNPXVisualizer::onCommand()
 		_originY = 0.0;
 		_originZ = 0.0;
 
-		UiMCNPXSceneEditor.sectionDistance->setValue(max(_extentH, _extentV));
+        UiMCNPXSceneEditor.sectionDistance->setValue(std::max(_extentH, _extentV));
 		UiMCNPXSceneEditor.doubleSpinBox_originX->setValue(_originX);
 		UiMCNPXSceneEditor.doubleSpinBox_originY->setValue(_originY);
 		UiMCNPXSceneEditor.doubleSpinBox_originZ->setValue(_originZ);
@@ -816,7 +817,7 @@ void MCNPXVisualizer::onCommand()
 	}
 	if (extentChanged)
 	{
-		UiMCNPXSceneEditor.sectionDistance->setValue(max(_extentH, _extentV));
+        UiMCNPXSceneEditor.sectionDistance->setValue(std::max(_extentH, _extentV));
 		statusBar()->showMessage(QString("Set extent to eh=%1, ev=%2.")
 													.arg(_extentH, 4)
 													.arg(_extentV, 4)
@@ -875,7 +876,7 @@ void MCNPXVisualizer::onCommand()
 	QRegExp rePZ("PZ\\s*([-\\d.]+)\\s*", Qt::CaseInsensitive);
 	commandLine->clear();
 
-	float extent = max(_extentH, _extentV);
+    float extent = std::max(_extentH, _extentV);
 	if (rePX.indexIn(command) != -1) 
 	{
 		float base = rePX.cap(1).toFloat();
@@ -1626,7 +1627,7 @@ bool MCNPXVisualizer::renderSave()
 	if (fileName.isEmpty())
 		return false;
 
-	imageLabel->pixmap()->save(fileName);
+    imageLabel->pixmap().save(fileName);
 	return true;
 }
 
@@ -1664,6 +1665,7 @@ void MCNPXVisualizer::preparse()
 
 	// Debug info for the output window
 	QString output = "<br /><br />Python MCNPXPreParser.py \"" + curFile + "\"";
+    output += " \"" + QString::fromStdString(Config::getSingleton().TEMP);
 	output += " \"" + QString::fromStdString(Config::getSingleton().TEMP) + curFileName + "_surfaces" + "\"";
 	output += " \"" + QString::fromStdString(Config::getSingleton().TEMP) + curFileName + "_cells" + "\"";
 	output += " \"" + QString::fromStdString(Config::getSingleton().TEMP) + curFileName + "_universes" + "\"";
@@ -1687,7 +1689,7 @@ void MCNPXVisualizer::onParse()
 {
 	moveToThread(cthread); // necessary because we want to use the GUI out of a non gui thread
 
-	std::cout << "start parsing " << curFile.toStdString().c_str() << "..." << std::endl;
+	std::cout << "start parsing " << curFile.toStdString().c_str() << "... \n" << std::endl;
 
 	// First write the material information colormap to file
 	writeColorMap();
@@ -1796,7 +1798,7 @@ void MCNPXVisualizer::finishedParsing(QString method)
 		QFile fileUniverse(QString::fromStdString(Config::getSingleton().TEMP) + curFileName + "_universes");
 		if (!fileUniverse.open(QFile::ReadOnly | QFile::Text))
 		{
-			std::cout << "ERROR (finishedParsing) => couldn't open universes file" << std::endl;
+            std::cout << "\n fileuniverse: ERROR (finishedParsing) => couldn't open universes file" << std::endl;
 			return ;
 		}
 		QTextStream inUniverse(&fileUniverse);
@@ -1809,7 +1811,7 @@ void MCNPXVisualizer::finishedParsing(QString method)
 			{
 				QString universe = list.at(0);
 				list.pop_front();
-				//this->UiUniverses.addUniverse(universe, list);
+                this->UiUniverses.addUniverse(universe, list);
 			}
 		} 
 		fileUniverse.close();
@@ -1839,7 +1841,7 @@ void MCNPXVisualizer::finishedParsing(QString method)
 		QFile fileImportance(QString::fromStdString(Config::getSingleton().TEMP) + curFileName + "_importance");
 		if (!fileImportance.open(QFile::ReadOnly | QFile::Text))
 		{
-			std::cout << "ERROR (finishedParsing) => couldn't open universes file" << std::endl;
+            std::cout << "fileimportance: ERROR (finishedParsing) => couldn't open universes file" << std::endl;
 			return ;
 		}
 		QTextStream inImportance(&fileImportance);
@@ -2159,7 +2161,7 @@ void  MCNPXVisualizer::onItemDoubleClicked( QTreeWidgetItem * item, int column )
 	else if (column == 3)
 	{
 		bool ok;
-		int d = QInputDialog::getInteger(this, tr("Set transparancy percentage"),
+        int d = QInputDialog::getInt(this, tr("Set transparancy percentage"),
 				tr("Transparancy:"), item->text(3).toDouble(), 0, 100, 1, &ok);
 
 		if (ok)
@@ -2183,9 +2185,10 @@ void MCNPXVisualizer::loadStandardColors()
 {
 	_colorMap.clear();
 	QFile file(QString::fromStdString(Config::getSingleton().DATA) + "randomColors.txt");
+    std::cout << (Config::getSingleton().DATA) + "randomColors.txt";
 	if (!file.open(QFile::ReadOnly | QFile::Text))
 	{
-		std::cout << "ERROR (finishedParsing) => couldn't open universes file" << std::endl;
+        std::cout << " load standard colors: ERROR (finishedParsing) => couldn't open universes file" << std::endl;
 		return ;
 	}
 
@@ -2285,7 +2288,7 @@ void MCNPXVisualizer::loadSavedMaterials()
 {
 	_savedMaterials.clear(); // remove any earlier loaded color
 
-	QString line;
+    QString line;
 	QFile fileMaterials(QString::fromStdString(Config::getSingleton().TEMP) + curFileName + "_colorMap");
 	if (!fileMaterials.open(QFile::ReadOnly | QFile::Text))
 	{
@@ -2296,8 +2299,8 @@ void MCNPXVisualizer::loadSavedMaterials()
 
 	// first line is the current color index
 	line = inSavedMaterialsFile.readLine();
-	QTextStream str(&QString(line));
-	str >> _currentColorIndex;
+    QTextStream str(&(line));
+    str >> _currentColorIndex;
 
 	if (_currentColorIndex >= _colorMap.size())
 		_currentColorIndex = 0;
@@ -2352,7 +2355,7 @@ void MCNPXVisualizer::createMaterials()
 	QString name;
 	while (!((line = inMaterials.readLine()).isNull()))
 	{
-		QTextStream str(&QString(line));
+        QTextStream str(&(line));
 		str >> number >> name;
 		//std::cout << number << ": " << name.toStdString() << std::endl;
 		if (name == "None")

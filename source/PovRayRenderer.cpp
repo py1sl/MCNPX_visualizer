@@ -14,6 +14,7 @@
 
 #include <QStringList>
 #include <QList>
+
 #include <QByteArray>
 #include <iostream>
 
@@ -28,7 +29,7 @@ PovRayRenderer::PovRayRenderer(QString povFile, QString initFile)
 	_process.setWorkingDirectory(QString::fromStdString(Config::getSingleton().POVRAY) );
 
 	connect(&_process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(finished( int, QProcess::ExitStatus)));
-	connect(&_process, SIGNAL(error(QProcess::ProcessError)), this, SLOT(error(QProcess::ProcessError)));
+    connect(&_process, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(error(QProcess::ProcessError)));
 	connect(&_process, SIGNAL(started()), this, SLOT(started()));
 	connect(&_process, SIGNAL(stateChanged(QProcess::ProcessState newState)), this, SLOT(stateChanged(QProcess::ProcessState newState)));
 
@@ -61,7 +62,10 @@ void PovRayRenderer::render()
 {	
 
 	QStringList args;
-	
+    for (int i{}; i < args.size(); i++)
+    {
+        std::cout << args[i].toStdString();
+    }
 	#ifndef unix
 		args.push_back(QString("/EXIT"));
 		args.push_back(QString("/RENDER"));
@@ -74,7 +78,7 @@ void PovRayRenderer::render()
 
 	args.push_back(_init);
 	#ifdef unix
-		//args.push_back( QString("+WL0"));
+        args.push_back( QString("+WL0"));
 	#endif
 		_process.setReadChannel(QProcess::StandardOutput);
     #ifdef _WIN32
@@ -105,8 +109,6 @@ void PovRayRenderer::finished( int exitCode, QProcess::ExitStatus exitStatus)
 	{
 		emit finishedRendering(this->_info);
 	}
-	else
-		;
 }
 
 // ==> displayOutputMsg()
@@ -124,11 +126,11 @@ void PovRayRenderer::displayOutputMsg(){
 // Seek for progress information for parsing or for rendering
 //--------------------------------------------------------------------
 void PovRayRenderer::parseOutputMessage(QString output)
-{
-	QRegExp re("\\((\\d+),(\\d+)\\)\\s+to\\s+\\((\\d+),(\\d+)\\)\\s*\\w*(\\d+)\\:(\\d+)\\:(\\d+)\\s+Rendering\\s+line\\s+(\\d+)\\s+of\\s+(\\d+)", Qt::CaseInsensitive);
-	QRegExp re2("(\\d+)\\:(\\d+)\\:(\\d+)\\s+Rendering\\s+line\\s+(\\d+)\\s+of\\s+(\\d+)", Qt::CaseInsensitive);
- 	int pos = 0;	
-	while ((pos = re2.indexIn(output, pos)) != -1) {
+{   //still using qreg instead of qregularexpressionn - outdated in qt 6
+    QRegExp re("\\((\\d+),(\\d+)\\)\\s+to\\s+\\((\\d+),(\\d+)\\)\\s*\\w*(\\d+)\\:(\\d+)\\:(\\d+)\\s+Rendering\\s+line\\s+(\\d+)\\s+of\\s+(\\d+)", Qt::CaseInsensitive);
+    QRegExp re2("(\\d+)\\:(\\d+)\\:(\\d+)\\s+Rendering\\s+line\\s+(\\d+)\\s+of\\s+(\\d+)", Qt::CaseInsensitive);
+    int pos = 0;
+    while ((pos = re2.indexIn(output, pos)) != -1) {
 	    _info.renderHour = re2.cap(1).toInt();
 	     _info.renderMin = re2.cap(2).toInt();
 	     _info.renderSec = re2.cap(3).toInt();
@@ -136,7 +138,7 @@ void PovRayRenderer::parseOutputMessage(QString output)
 	     pos += re2.matchedLength();
 	 }
 	 
-	QRegExp re3("(\\d+)\\:(\\d+)\\:(\\d+)\\s+Parsing\\s+(\\d+)K", Qt::CaseInsensitive);
+    QRegExp re3("(\\d+)\\:(\\d+)\\:(\\d+)\\s+Parsing\\s+(\\d+)K", Qt::CaseInsensitive);
  	int pos2 = 0;	
 	while ((pos = re3.indexIn(output, pos2)) != -1) {
 	     // 

@@ -61,28 +61,28 @@ def parse(inputFile, outputFile, cellFile, colorMapFile):
 ################################
 #  PARSING
 ################################
-    print "START PARSING", inputFile, " to ", outputFile
+    print("START PARSING", inputFile, " to ", outputFile)
     
-    print "PARSING DATA CARDS"
+    print("PARSING DATA CARDS")
     parser.parseDataCards()
-    print "\t" + str(len(parser.dataCards)) + " DATA CARDS PARSED"
+    print("\t" + str(len(parser.dataCards)) + " DATA CARDS PARSED")
     
-    print "PARSING SURFACE CARDS"
+    print("PARSING SURFACE CARDS")
     parser.parseSurfaces()
-    print "\t" + str(len(parser.surfaceCards)) + " SURFACE CARDS PARSED"
+    print("\t" + str(len(parser.surfaceCards)) + " SURFACE CARDS PARSED")
 
-    print "PARSING CELL CARDS"
+    print("PARSING CELL CARDS")
     parser.parseCells()
     
-    print "\tUniverses Found:",
-    for uni in parser.universes:
-        print str(uni) + "",
-    print ""
+    print("\tUniverses Found:", end=' ')
+    #
+    # for uni in parser.universes:
+        #print(str(uni) + "", end=' ')
 
 ################################
 #  BUILDING
 ################################
-    print "BUILD CELL CARDS"
+    print("BUILDING CELL CARDS")
     
     # write a standard macro for drawing universes in Pov-Ray which can be used for every sort of universe
     file.writeln("//Macro's for drawing")
@@ -110,8 +110,12 @@ def parse(inputFile, outputFile, cellFile, colorMapFile):
     items = [] # this list will contain all the builded cell cards
     cellF = open(cellFile, 'r+')
     for line in cellF:
+        print("\n" + line)
         if (line != ""):
+            
             povItem = parser.buildCell(cellNumber = int(line), parent = -1, depth = 0,  buildVoid = buildVoid, useColor=True)
+            print(povItem)
+            print(" \n")
             if (povItem):
                 items.append(["//" + parser.getGeometryOfCellCard(line), povItem])
 
@@ -143,11 +147,11 @@ def parse(inputFile, outputFile, cellFile, colorMapFile):
         file.writeln("//" + surfaceCard.getSurfaceLine())
 
     
-    print "\t" + str(len(items)) + " CELL CARDS BUILDED"
-    print "\nEND BUILDING CELL CARDS"
+    print("\t" + str(len(items)) + " CELL CARDS BUILDED")
+    print("\nEND BUILDING CELL CARDS")
 
-    print "\nMCNPX to POV RAY COMPLETED"
-    print "TITLE MCNPX: " + parser.title
+    print("\nMCNPX to POV RAY COMPLETED")
+    print("TITLE MCNPX: " + parser.title)
 
     #oStrippedFile = open(inputFile + "stripped.txt", 'w')
     #for line in parser.cellBlock:
@@ -180,13 +184,13 @@ def initialize():
     #parse("mcnpx/graphc.txt", "mcnpx/graphcOut.pov")
     try:
         opts, args = getopt.getopt(sys.argv[1:], "h", ["help"])
-    except getopt.error, msg:
-        print msg
-        print "for help use --help"
+    except getopt.error as msg:
+        print(msg)
+        print("for help use --help")
         sys.exit(2)
     
     if len(args) != 4:
-        print "ERROR (MCNPXCellParser.py): not enough arguments"
+        print("ERROR (MCNPXCellParser.py): not enough arguments")
         return 1
     
     parse(args[0], args[1], args[2], args[3])

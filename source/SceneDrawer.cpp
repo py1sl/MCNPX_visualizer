@@ -18,6 +18,7 @@
 #define PI 3.14159265
 
 #include <QWheelEvent>
+#include <QSinglePointEvent>
 #include <iostream>
 #include <math.h>
 
@@ -25,7 +26,7 @@
 // Constructor
 //--------------------------------------------------------------------
 SceneDrawer::SceneDrawer(QWidget *parent)
-         : QGLWidget(parent)
+         : QOpenGLWidget(parent)
 {
 	// Create and connect the frame updater
 	_frameUpdateTimer = new QTimer();
@@ -252,7 +253,7 @@ void SceneDrawer::addScene(QString typeScene, QStringList data)
 //--------------------------------------------------------------------
 void SceneDrawer::clearScene()
 {
-	for (int i=0; i<_objects.size(); i++)
+    for (size_t i=0; i<_objects.size(); i++)
 		delete _objects[i];
 	_objects.clear();
 }
@@ -263,7 +264,7 @@ void SceneDrawer::clearScene()
 void SceneDrawer::initializeGL()
  {
 	// Initialize QGLWidget (parent)
-	QGLWidget::initializeGL();
+    QOpenGLWidget::initializeGL();
 
 	glShadeModel(GL_SMOOTH);
 	glClearColor(0.4196f,0.5451f,0.6667f,1.0f);
@@ -294,7 +295,7 @@ void SceneDrawer::initializeGL()
 //--------------------------------------------------------------------
 void SceneDrawer::slotOnFrameUpdate()
 {
-	this->updateGL();
+    this->update();
 }
 
 // ==> setAzimuth(azimuth)
@@ -504,7 +505,7 @@ void SceneDrawer::paintGL()
 	glEnable(GL_LIGHTING);
 
 	// Draw all the OpenGL Objects of the scene
-	for (int i=0; i<this->_objects.size(); i++)
+    for (size_t i=0; i<this->_objects.size(); i++)
 	{
 		glPushMatrix();
 		_objects[i]->draw();
@@ -855,11 +856,13 @@ void SceneDrawer::mousePressEvent(QMouseEvent* e)
 	// Check if there are modifiers pressed
 	_alt = false;
 	_ctrl = false;
+    _shift = false;
 	if (e->modifiers() & Qt::AltModifier)
 		_alt = true;
 	if (e->modifiers() & Qt::ControlModifier)
 		_ctrl = true;
-
+    if (e->modifiers() & Qt::ShiftModifier)
+        _shift = true;
 	e->accept();
 }
 
@@ -882,10 +885,15 @@ void SceneDrawer::mouseMoveEvent(QMouseEvent* e)
 	{
 		this->setStrafeX(_camStrafeX - (float(e->pos().x()) - _horizontalOffset)*_sensitivity);
 	}
+    else if (_shift)
+    {
+        this->setXRotation(xrot - (float(e->position().x()) - _horizontalOffset)*_sensitivity);
+        this->setZRotation(zrot - (float(e->position().y()) - _verticalOffset)*_sensitivity);
+    }
 	else
 	{
-		this->setAzimuth(_azimuth - (float(e->pos().x()) - _horizontalOffset)*_sensitivity);
-		this->setElevation(_elevation - (float(e->pos().y()) - _verticalOffset)*_sensitivity);
+        this->setAzimuth(_azimuth - (float(e->position().x()) - _horizontalOffset)*_sensitivity);
+        this->setElevation(_elevation - (float(e->position().y()) - _verticalOffset)*_sensitivity);
 	}
 
 	// Update statusbar information
@@ -908,30 +916,46 @@ void SceneDrawer::mouseReleaseEvent(QMouseEvent* e)
 	_verticalOffset = 0.0;
 	_alt = false;
 	_ctrl = false;
-
+    _shift = false;
 	e->accept();
 }
 
 // ==> wheelEvent(e)
 //	Use the wheel event to change de distance of the camera
 //--------------------------------------------------------------------
-void SceneDrawer::wheelEvent(QWheelEvent *e)
+void SceneDrawer::wheelEvent(QWheelEvent *event)
 {
-	int numDegrees = e->delta() / 8;
-	float numSteps = numDegrees / 15.0;
+    int numDegrees = event->angleDelta().y() / 8;
+    float numSteps = numDegrees / 15.0;
 
-	if (e->orientation() == Qt::Vertical) 
-		this->setDistance(_distance + numSteps*(0.1)*_distance);
-
+    if (event->angleDelta().y() > 0){
+        this->setDistance(_distance + numSteps *(0.1)*_distance);
+    } else if (event->angleDelta().y() < 0){
+        this->setDistance(-_distance - numSteps *(0.1)*_distance);
+    }
 	// Update the statusbar information
 	QString status = QString("Azimuth: %1, Elevation: %2, Distance: %3, StrafeX: %4, StrafeY: %5, StrafeZ: %6").arg(_azimuth, 8, 'f', 3).arg(_elevation, 8, 'f', 3).arg(_distance, 8, 'f', 3).arg(_camStrafeX, 8, 'f', 3).arg(_camStrafeY, 8, 'f', 3).arg(_camStrafeZ, 8, 'f', 3);
 	emit statusChanged(status, 0);	
 
-	e->accept();
+    event->accept();
 }
 
-
-
+void SceneDrawer::setZRotation(int angle)
+{
+    if (angle != zrot){
+        zrot = angle;
+        emit zrotationchanged(angle);
+        updateCamera();
+    }
+}
+void SceneDrawer::setXRotation(int angle)
+{
+    if (angle != xrot){
+        xrot = angle;
+        emit xrotationchanged(angle);
+        updateCamera();
+    }
+}
 
 // ==> selection(mouseX, mouseY)
 //	Picking of the scene based on the mouse position (doesn't work!)
