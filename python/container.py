@@ -34,7 +34,7 @@ class Container:
 	#------------------------------------------------------------------------------------------------------------------
 	@staticmethod	
 	def isFloat(self, s):
-		if (re.search('\.', s) or re.search('E', s) or re.search('e', s)):
+		if (re.search(r'\.', s) or re.search('E', s) or re.search('e', s)):
 			return True
 		else:
 			return False
