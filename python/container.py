@@ -13,7 +13,6 @@ import re
 import math
 import os
 import inspect
-print(inspect.getfile(os))
 from sympy import core, solvers, matrices
 
 class Container:

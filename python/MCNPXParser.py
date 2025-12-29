@@ -31,10 +31,7 @@ import re
 import copy
 import math
 import os
-print("PYTHONPATH:", os.environ.get('PYTHONPATH'))
-print("PATH:", os.environ.get('PATH'))
 import sys
-print(sys.path)
 import numpy as np
 
 import MCNPXPreProcess
