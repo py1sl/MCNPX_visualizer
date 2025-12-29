@@ -13,7 +13,6 @@ import re
 import math
 import os
 import inspect
-print(inspect.getfile(os))
 from sympy import core, solvers, matrices
 
 class Container:
@@ -34,7 +33,7 @@ class Container:
 	#------------------------------------------------------------------------------------------------------------------
 	@staticmethod	
 	def isFloat(self, s):
-		if (re.search('\.', s) or re.search('E', s) or re.search('e', s)):
+		if (re.search(r'\.', s) or re.search(r'E', s) or re.search(r'e', s)):
 			return True
 		else:
 			return False

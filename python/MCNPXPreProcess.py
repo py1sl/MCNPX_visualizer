@@ -33,7 +33,7 @@ class MCNPXPreProcess:
    #remove all comments on non-empty lines for easier parsing.
    for i,line in enumerate(self.filedata):
 
-     s = re.match("(.*?)(\W\$\s*.*)|(\W[c]\s+.*)|(\W[C]\s+.*)", line, re.IGNORECASE|
+     s = re.match(r"(.*?)(\W\$\s*.*)|(\W[c]\s+.*)|(\W[C]\s+.*)", line, re.IGNORECASE|
 re.DOTALL)
      if s:
        
@@ -41,9 +41,9 @@ re.DOTALL)
          self.filedata[i] = s.groups()[0]
          self.filedataWithComments[i] = s.groups()[0]
    #filter out all other comments that occupy a complete line
-   self.filedata = [ i for i in self.filedata if re.match("^\s*[c$]\s+", i, flags=re.IGNORECASE) is None]
+   self.filedata = [ i for i in self.filedata if re.match(r"^\s*[c$]\s+", i, flags=re.IGNORECASE) is None]
    #print self.filedataWithComments;
-   self.filedataWithComments = [ i for i in self.filedataWithComments if re.match("^\s*[$]\s+", i, flags=re.IGNORECASE ) is None]
+   self.filedataWithComments = [ i for i in self.filedataWithComments if re.match(r"^\s*[$]\s+", i, flags=re.IGNORECASE ) is None]
   
    
    

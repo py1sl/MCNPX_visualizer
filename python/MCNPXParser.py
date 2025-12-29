@@ -31,10 +31,7 @@ import re
 import copy
 import math
 import os
-print("PYTHONPATH:", os.environ.get('PYTHONPATH'))
-print("PATH:", os.environ.get('PATH'))
 import sys
-print(sys.path)
 import numpy as np
 
 import MCNPXPreProcess
@@ -124,7 +121,7 @@ class MCNPXParser:
         if (self.colorMapFile):
             for line in open(self.colorMapFile).readlines():
                 dh = DataHolder()
-                if (dh.set(re.match('^[\s]*(?P<material>[\d]+)[\s]+(?P<red>[\d]+)[\s]+(?P<green>[\d]+)[\s]+(?P<blue>[\d]+)[\s]+(?P<alpha>[\d\.]+)[\s]*', line ,flags=re.IGNORECASE))):
+                if (dh.set(re.match(r'^[\s]*(?P<material>[\d]+)[\s]+(?P<red>[\d]+)[\s]+(?P<green>[\d]+)[\s]+(?P<blue>[\d]+)[\s]+(?P<alpha>[\d\.]+)[\s]*', line ,flags=re.IGNORECASE))):
                     items = dh.value.groupdict()
                     self.colorMap[items['material']] = Color(float(items['red'])/255.0, float(items['green'])/255.0, float(items['blue'])/255.0, float(items['alpha']))
     # end preProcess
@@ -236,7 +233,7 @@ class MCNPXParser:
                 card.paramsData = []
                 parametersStarted = False
                 for n in range(geometryStartPosition, len(cellCard)):
-                    if (re.match("^[a-z,\*]+[.]*", cellCard[n], flags=re.IGNORECASE) or parametersStarted):
+                    if (re.match(r"^[a-z,\*]+[.]*", cellCard[n], flags=re.IGNORECASE) or parametersStarted):
                         # start/continue reading parameters
                         if (parametersStarted == False):
                             parametersStarted = True
@@ -409,7 +406,7 @@ class MCNPXParser:
             
             
     def createCellTreeStringRecursive(self, card, depth):
-        #if not card.params.has_key('U'):
+        #if 'U' not in card.params:
         #   return ""
         if depth > 22:
             print(card)
@@ -957,7 +954,7 @@ class MCNPXParser:
     # Returns the bounding box of a geometry (string)
     #------------------------------------------------------------------------------------------------------------------
     def getBoundingBoxOfGeometry(self, geometry):
-        if (re.search('\:', geometry)):
+        if (re.search(r'\:', geometry)):
             return 0 # couldn't calculate bounding box if there if the cell is combined of a union
         else:
             # single element or intersection
@@ -2051,7 +2048,7 @@ class MCNPXParser:
     #------------------------------------------------------------------------------------------------------------------ 
     def getHexOffset(self, cellCard):
         geometry = cellCard.fullGeometry
-        if (re.search('\:', geometry)):
+        if (re.search(r'\:', geometry)):
             return 0
         else:
             intersection = re.split(r'[\s]+', geometry)
